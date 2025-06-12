@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Bùi Hương Giang</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #cceeff;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(#87CEEB, #fff);
+    }
+    #character {
+      position: absolute;
+      bottom: 50px;
+      left: 50px;
+      width: 50px;
+      height: 50px;
+      background: red;
+      border-radius: 10px;
+    }
+    .obstacle {
+      position: absolute;
+      bottom: 50px;
+      width: 30px;
+      height: 50px;
+      background: green;
+      animation: moveObstacle 3s linear infinite;
+    }
+    @keyframes moveObstacle {
+      0% { right: -30px; }
+      100% { right: 100vw; }
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="character"></div>
+    <div id="score">Điểm: 0</div>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const character = document.getElementById('character');
+    const scoreDisplay = document.getElementById('score');
+    let jumping = false;
+    let score = 0;
+
+    function jump() {
+      if (jumping) return;
+      jumping = true;
+      let jumpHeight = 0;
+      let upInterval = setInterval(() => {
+        if (jumpHeight >= 150) {
+          clearInterval(upInterval);
+          let downInterval = setInterval(() => {
+            if (jumpHeight <= 0) {
+              clearInterval(downInterval);
+              jumping = false;
+            } else {
+              jumpHeight -= 5;
+              character.style.bottom = (50 + jumpHeight) + 'px';
+            }
+          }, 20);
+        } else {
+          jumpHeight += 5;
+          character.style.bottom = (50 + jumpHeight) + 'px';
+        }
+      }, 20);
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        jump();
+      }
+    });
+
+    function createObstacle() {
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      obstacle.style.right = '-30px';
+      game.appendChild(obstacle);
+
+      let moveInterval = setInterval(() => {
+        let obstacleRight = parseInt(obstacle.style.right || 0);
+        if (obstacleRight > window.innerWidth) {
+          clearInterval(moveInterval);
+          game.removeChild(obstacle);
+          score++;
+          scoreDisplay.textContent = `Điểm: ${score}`;
+        } else {
+          obstacle.style.right = (obstacleRight + 5) + 'px';
+
+          let charLeft = character.offsetLeft;
+          let charRight = charLeft + character.offsetWidth;
+          let charTop = window.innerHeight - character.offsetTop - character.offsetHeight;
+          let obsLeft = window.innerWidth - (obstacleRight + obstacle.offsetWidth);
+          let obsRight = obsLeft + obstacle.offsetWidth;
+
+          if (
+            charRight > obsLeft &&
+            charLeft < obsRight &&
+            charTop < obstacle.offsetHeight
+          ) {
+            alert(`Thua cuộc! Tổng điểm: ${score}`);
+            window.location.reload();
+          }
+        }
+      }, 20);
+    }
+
+    setInterval(createObstacle, 2000);
+  </script>
+</body>
+</html>
